@@ -315,6 +315,7 @@
     </div>
 
     <button id="btn-demo" disabled>Continue</button>
+    <button id="btn-demo-back" style="background: transparent; color: var(--muted); box-shadow: none;">Back</button>
   </div>
 
   <!-- Screen 3: Instructions -->
@@ -324,6 +325,7 @@
     <p>Please respond based on your first impression, and answer as honestly as you can. Each clip plays once, then the rating scales will appear.</p>
     <p class="muted">Let's start with one practice clip so you can see how it works. This one won't be scored.</p>
     <button id="btn-start-practice">Start practice</button>
+    <button id="btn-instructions-back" style="background: transparent; color: var(--muted); box-shadow: none;">Back</button>
   </div>
 
   <!-- Screen 4: Trial (reused for practice, real trials, and attention check) -->
@@ -595,6 +597,14 @@ document.getElementById('d-age').addEventListener('input', checkDemoComplete);
 
 document.getElementById('btn-demo').addEventListener('click', () => {
   showScreen('screen-instructions');
+});
+
+document.getElementById('btn-demo-back').addEventListener('click', () => {
+  showScreen('screen-consent');
+});
+
+document.getElementById('btn-instructions-back').addEventListener('click', () => {
+  showScreen('screen-demo');
 });
 
 document.getElementById('btn-start-practice').addEventListener('click', () => {
