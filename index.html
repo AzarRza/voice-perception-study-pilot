@@ -406,6 +406,7 @@
   <div class="screen" id="screen-thanks">
     <h1 id="thanks-title">Saving your responses...</h1>
     <p id="thanks-body" class="muted">Please don't close this window yet, this only takes a moment.</p>
+    <button id="btn-close" style="display:none;">Close window</button>
   </div>
 
 </div>
@@ -413,7 +414,7 @@
 <script>
 // ---- Configuration ----
 
-const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbyKaGFv3WT2pkZ8aAFu6nLc4PuMiZdMqSN2khND2-Euo5OutRBoiH_wwI-Bw2IfeiGC/exec";
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycby92dA9l4QUZ3_ZSr-NPqYetnlOKvS5IRK5z3Wcti6z-O49PMjsOpPOg1GxdU9LSXs/exec";
 
 const TRAITS = ["Warm", "Pleasant", "Trustworthy", "Competent", "Authoritative", "Credible"];
 
@@ -448,6 +449,10 @@ let sessionData = [];
 let trialQueue = [];
 let currentTrialIndex = -1;
 let currentRatings = {};
+
+// Unique per-session participant ID, generated once when the page loads,
+// so rows from the same person can be grouped and different people told apart.
+const PARTICIPANT_ID = 'P' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
 // ---- Helpers ----
 
@@ -611,6 +616,7 @@ function submitData() {
   showScreen('screen-thanks');
 
   const payload = {
+    participant_id: PARTICIPANT_ID,
     demographics: demographics,
     trials: sessionData,
     completed_at: new Date().toISOString()
@@ -623,7 +629,8 @@ function submitData() {
     body: JSON.stringify(payload)
   }).then(() => {
     document.getElementById('thanks-title').textContent = 'Thank you';
-    document.getElementById('thanks-body').textContent = 'Your responses have been recorded. We appreciate your time. You can now close this window.';
+    document.getElementById('thanks-body').textContent = 'Your responses have been recorded. We appreciate your time.';
+    document.getElementById('btn-close').style.display = 'inline-block';
   }).catch(() => {
     document.getElementById('thanks-title').textContent = 'Something went wrong';
     document.getElementById('thanks-body').textContent =
@@ -683,6 +690,16 @@ document.getElementById('btn-start-real').addEventListener('click', () => {
 });
 
 setupRadioGroups();
+
+document.getElementById('btn-close').addEventListener('click', () => {
+  window.close();
+  // If the browser blocks script-initiated close (common for tabs not
+  // opened by a script), fall back to a clear instruction instead.
+  setTimeout(() => {
+    document.getElementById('thanks-body').textContent = 'You can now close this tab manually.';
+    document.getElementById('btn-close').style.display = 'none';
+  }, 300);
+});
 </script>
 
 </body>
