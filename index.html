@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Listening Task</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #F7F6F3;
@@ -24,7 +24,7 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Figtree', sans-serif;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -43,16 +43,16 @@
   }
 
   h1 {
-    font-family: 'Libre Franklin', sans-serif;
-    font-weight: 700;
+    font-family: 'Figtree', sans-serif;
+    font-weight: 800;
     font-size: 24px;
     margin: 0 0 16px 0;
     letter-spacing: -0.01em;
   }
 
   h2 {
-    font-family: 'Libre Franklin', sans-serif;
-    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
+    font-weight: 700;
     font-size: 18px;
     margin: 0 0 12px 0;
   }
@@ -90,7 +90,7 @@
 
   label {
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 6px;
     margin-top: 18px;
     font-size: 15px;
@@ -102,7 +102,7 @@
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Figtree', sans-serif;
     font-size: 15px;
     background: var(--bg);
   }
@@ -130,8 +130,8 @@
   }
 
   button {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    font-family: 'Figtree', sans-serif;
+    font-weight: 600;
     font-size: 15px;
     padding: 12px 28px;
     border-radius: 10px;
@@ -198,9 +198,10 @@
 
   .rating-item { margin-bottom: 22px; }
   .rating-item .trait-name {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 700;
+    font-size: 16px;
     margin-bottom: 8px;
+    text-align: center;
   }
   .scale-row {
     display: flex;
@@ -242,10 +243,11 @@
 
   .trial-counter {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-size: 16px;
+    font-weight: 500;
     color: var(--muted);
     text-align: center;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
   }
 
   .consent-check {
@@ -345,9 +347,8 @@
 
   <!-- Screen 5: Thank you -->
   <div class="screen" id="screen-thanks">
-    <h1>Thank you</h1>
-    <p>Your responses have been recorded. We appreciate your time.</p>
-    <p class="muted" id="submit-status">Sending your responses...</p>
+    <h1 id="thanks-title">Saving your responses...</h1>
+    <p id="thanks-body" class="muted">Please don't close this window yet, this only takes a moment.</p>
   </div>
 
 </div>
@@ -428,6 +429,7 @@ function setupRadioGroups() {
 
 function checkDemoComplete() {
   const age = document.getElementById('d-age').value;
+  if (age) demographics['d-age'] = age;
   const complete = age && demographics['d-native'] && demographics['d-hearing'] &&
                     demographics['d-headphones'] && demographics['d-gender'];
   document.getElementById('btn-demo').disabled = !complete;
@@ -556,6 +558,8 @@ function recordCurrentTrial(isPracticeRun) {
 }
 
 function submitData() {
+  showScreen('screen-thanks');
+
   const payload = {
     demographics: demographics,
     trials: sessionData,
@@ -568,10 +572,12 @@ function submitData() {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight, which Apps Script can't handle
     body: JSON.stringify(payload)
   }).then(() => {
-    document.getElementById('submit-status').textContent = 'Responses saved.';
+    document.getElementById('thanks-title').textContent = 'Thank you';
+    document.getElementById('thanks-body').textContent = 'Your responses have been recorded. We appreciate your time. You can now close this window.';
   }).catch(() => {
-    document.getElementById('submit-status').textContent =
-      'There was an issue saving your responses automatically. Please contact the researcher.';
+    document.getElementById('thanks-title').textContent = 'Something went wrong';
+    document.getElementById('thanks-body').textContent =
+      'There was an issue saving your responses. Please contact the researcher before closing this window.';
   });
 }
 
@@ -610,7 +616,6 @@ document.getElementById('btn-next').addEventListener('click', () => {
   if (currentTrialIndex + 1 < trialQueue.length) {
     loadTrial(currentTrialIndex + 1, false);
   } else {
-    showScreen('screen-thanks');
     submitData();
   }
 });
