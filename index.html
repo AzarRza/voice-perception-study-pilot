@@ -297,6 +297,8 @@
     margin-left: 10px;
   }
   .back-btn:hover { background: var(--bg) !important; }
+
+  .consent-check {
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -411,14 +413,10 @@
 <script>
 // ---- Configuration ----
 
-// Replace this with your own Google Apps Script Web App URL once it's set up.
-// See setup notes at the bottom of this file for how to create one.
 const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbyKaGFv3WT2pkZ8aAFu6nLc4PuMiZdMqSN2khND2-Euo5OutRBoiH_wwI-Bw2IfeiGC/exec";
 
 const TRAITS = ["Warm", "Pleasant", "Trustworthy", "Competent", "Authoritative", "Credible"];
 
-// The 8 real trials, in the fixed verbal-guise order already worked out.
-// Attention check gets inserted at a random position among these at runtime.
 const REAL_TRIALS = [
   { file: "1_42_Lom.wav",  sentence: "The agenda covers three items, though it's pretty loud around me right now.", speaker: 1,  gender: "Female", condition: "Lombard",  category: "Assertive" },
   { file: "4_41_Nat.wav",  sentence: "The document's already sitting in the shared folder from this morning.",      speaker: 4,  gender: "Male",   condition: "Habitual", category: "Assertive" },
@@ -430,8 +428,6 @@ const REAL_TRIALS = [
   { file: "15_58_Lom.wav", sentence: "There's a lot of noise on my end right now, could you give me a second?",     speaker: 15, gender: "Male",   condition: "Lombard",  category: "Directive" }
 ];
 
-// Attention check: text-based instruction, no audio needed, since its only job
-// is to confirm the participant is actually reading and following directions.
 const ATTENTION_TRIAL = {
   file: null,
   sentence: null,
@@ -462,7 +458,6 @@ function showScreen(id) {
 
 function shuffleInsertAttentionCheck(trials) {
   const queue = trials.slice();
-  // Insert at a random position, never first or last, so it can't be predicted or skipped
   const pos = 1 + Math.floor(Math.random() * (queue.length - 1));
   queue.splice(pos, 0, ATTENTION_TRIAL);
   return queue;
@@ -550,7 +545,6 @@ function loadTrial(index, isPracticeRun) {
   const nextBtn = document.getElementById('btn-next');
   const counter = document.getElementById('trial-counter');
 
-  // reset per-trial state
   ratingsBlock.classList.remove('visible');
   nextBtn.disabled = true;
   playBtn.classList.remove('playing');
@@ -569,7 +563,6 @@ function loadTrial(index, isPracticeRun) {
   if (trial.isAttentionCheck) {
     attentionText.style.display = 'block';
     attentionText.textContent = trial.instruction;
-    // No audio for the attention check, ratings appear immediately
     document.querySelector('.play-zone').style.display = 'none';
     buildRatingRows();
     ratingsBlock.classList.add('visible');
@@ -598,7 +591,7 @@ function loadTrial(index, isPracticeRun) {
 }
 
 function recordCurrentTrial(isPracticeRun) {
-  if (isPracticeRun) return; // practice data isn't saved
+  if (isPracticeRun) return;
   const trial = trialQueue[currentTrialIndex];
   sessionData.push({
     trial_number: currentTrialIndex + 1,
@@ -625,8 +618,8 @@ function submitData() {
 
   fetch(SUBMIT_URL, {
     method: 'POST',
-    mode: 'no-cors', // Apps Script web apps don't return CORS headers, so the response is opaque
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight, which Apps Script can't handle
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
   }).then(() => {
     document.getElementById('thanks-title').textContent = 'Thank you';
@@ -663,7 +656,7 @@ document.getElementById('btn-instructions-back').addEventListener('click', () =>
 });
 
 document.getElementById('btn-start-practice').addEventListener('click', () => {
-  loadTrial(0, true); // true = this is the practice run
+  loadTrial(0, true);
 });
 
 let inPractice = true;
@@ -694,19 +687,3 @@ setupRadioGroups();
 
 </body>
 </html>
-<!--
-SETUP NOTE, not part of the page itself:
-
-SUBMIT_URL above needs to point to a Google Apps Script Web App that appends
-incoming JSON to a Google Sheet. To set this up:
-
-1. Create a new Google Sheet.
-2. Extensions > Apps Script, paste a script that reads e.postData.contents,
-   parses it as JSON, and appends a row to the sheet.
-3. Deploy > New deployment > Web app, set "Who has access" to Anyone,
-   copy the resulting URL.
-4. Paste that URL into SUBMIT_URL at the top of the script above.
-
-This step needs your own Google account and hasn't been created yet,
-the page will not actually save data anywhere until this is done.
--->
