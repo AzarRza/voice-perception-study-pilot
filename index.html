@@ -263,6 +263,18 @@
     margin-bottom: 8px;
   }
 
+  .practice-banner {
+    background: #FFF4E5;
+    color: #8A5A00;
+    border: 1px solid #F0DCB0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
   .back-btn {
     background: transparent !important;
     color: var(--text) !important;
@@ -349,8 +361,16 @@
     <button id="btn-instructions-back" class="back-btn">Back</button>
   </div>
 
+  <!-- Screen: Transition from practice to real trials -->
+  <div class="screen" id="screen-transition">
+    <h2>That was a practice run</h2>
+    <p>Now the real test will begin. You'll hear 9 audio clips, each followed by the same six rating scales you just tried. Please rate each one based on your first impression.</p>
+    <button id="btn-start-real">Begin</button>
+  </div>
+
   <!-- Screen 4: Trial (reused for practice, real trials, and attention check) -->
   <div class="screen" id="screen-trial">
+    <div class="practice-banner" id="practice-banner" style="display:none;">This is a practice clip, it won't be scored</div>
     <div class="progress" id="progress-dots"></div>
     <div class="trial-counter" id="trial-counter"></div>
     <p id="attention-instruction" style="display:none; color: var(--accent-dark); font-weight: 500;"></p>
@@ -527,9 +547,11 @@ function loadTrial(index, isPracticeRun) {
   if (!isPracticeRun) {
     renderProgressDots();
     counter.textContent = `${index + 1} of ${trialQueue.length}`;
+    document.getElementById('practice-banner').style.display = 'none';
   } else {
     document.getElementById('progress-dots').innerHTML = '';
     counter.textContent = 'Practice';
+    document.getElementById('practice-banner').style.display = 'block';
   }
 
   if (trial.isAttentionCheck) {
@@ -637,8 +659,7 @@ let inPractice = true;
 document.getElementById('btn-next').addEventListener('click', () => {
   if (inPractice) {
     inPractice = false;
-    trialQueue = shuffleInsertAttentionCheck(REAL_TRIALS);
-    loadTrial(0, false);
+    showScreen('screen-transition');
     return;
   }
 
@@ -649,6 +670,11 @@ document.getElementById('btn-next').addEventListener('click', () => {
   } else {
     submitData();
   }
+});
+
+document.getElementById('btn-start-real').addEventListener('click', () => {
+  trialQueue = shuffleInsertAttentionCheck(REAL_TRIALS);
+  loadTrial(0, false);
 });
 
 setupRadioGroups();
