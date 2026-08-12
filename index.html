@@ -196,13 +196,26 @@
     max-height: 900px;
   }
 
-  .rating-item { margin-bottom: 22px; }
+  .rating-item {
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rating-item:last-child { border-bottom: none; }
   .rating-item .trait-name {
     font-weight: 700;
-    font-size: 16px;
-    margin-bottom: 8px;
+    font-size: 15px;
     text-align: center;
+    margin: 0 auto 14px auto;
+    display: inline-block;
+    padding: 5px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--accent-dark);
+    letter-spacing: 0.01em;
   }
+  .trait-name-wrap { text-align: center; }
   .scale-row {
     display: flex;
     align-items: center;
@@ -250,7 +263,15 @@
     margin-bottom: 8px;
   }
 
-  .consent-check {
+  .back-btn {
+    background: transparent !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 10px;
+  }
+  .back-btn:hover { background: var(--bg) !important; }
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -315,7 +336,7 @@
     </div>
 
     <button id="btn-demo" disabled>Continue</button>
-    <button id="btn-demo-back" style="background: transparent; color: var(--muted); box-shadow: none;">Back</button>
+    <button id="btn-demo-back" class="back-btn">Back</button>
   </div>
 
   <!-- Screen 3: Instructions -->
@@ -325,7 +346,7 @@
     <p>Please respond based on your first impression, and answer as honestly as you can. Each clip plays once, then the rating scales will appear.</p>
     <p class="muted">Let's start with one practice clip so you can see how it works. This one won't be scored.</p>
     <button id="btn-start-practice">Start practice</button>
-    <button id="btn-instructions-back" style="background: transparent; color: var(--muted); box-shadow: none;">Back</button>
+    <button id="btn-instructions-back" class="back-btn">Back</button>
   </div>
 
   <!-- Screen 4: Trial (reused for practice, real trials, and attention check) -->
@@ -457,7 +478,7 @@ function buildRatingRows() {
     const item = document.createElement('div');
     item.className = 'rating-item';
     item.innerHTML = `
-      <div class="trait-name">${trait}</div>
+      <div class="trait-name-wrap"><div class="trait-name">${trait}</div></div>
       <div class="scale-row">
         <div class="scale-end-label">Not at all</div>
         <div class="scale-points" data-trait="${trait}">
