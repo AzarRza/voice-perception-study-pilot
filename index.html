@@ -196,6 +196,14 @@
     max-height: 900px;
   }
 
+  .rating-instruction {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+  }
+
   .rating-item {
     margin-bottom: 26px;
     padding-bottom: 22px;
@@ -382,7 +390,6 @@
     </div>
 
     <div class="ratings-block" id="ratings-block">
-      <!-- rating rows get built by JS -->
     </div>
 
     <button id="btn-next" disabled>Next</button>
@@ -492,7 +499,7 @@ function renderProgressDots() {
 
 function buildRatingRows() {
   const block = document.getElementById('ratings-block');
-  block.innerHTML = '';
+  block.innerHTML = '<p class="rating-instruction">Based on the audio clip you just heard, rate how the speaker sounds to you on each scale below, from 1 (Not at all) to 7 (Extremely).</p>';
   currentRatings = {};
   TRAITS.forEach(trait => {
     const item = document.createElement('div');
