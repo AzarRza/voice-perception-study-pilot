@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening Task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F6F3;
+    --text: #1E2328;
+    --accent: #3B5BA5;
+    --accent-dark: #2E477F;
+    --muted: #8A8F98;
+    --highlight: #4A7C6F;
+    --card-bg: #FFFFFF;
+    --border: #E5E3DD;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 640px;
+    width: 100%;
+    padding: 40px 36px;
+    box-shadow: 0 2px 24px rgba(30,35,40,0.06);
+  }
+
+  h1 {
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 12px 0;
+  }
+
+  p {
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0 0 16px 0;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Progress dots, minimal, not a percentage or fraction */
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+    justify-content: center;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.done { background: var(--highlight); }
+  .dot.current { background: var(--accent); }
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 6px;
+    margin-top: 18px;
+    font-size: 15px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+  }
+
+  .radio-row {
+    display: flex;
+    gap: 12px;
+  }
+  .radio-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    background: var(--bg);
+    transition: all 0.15s;
+  }
+  .radio-option input { display: none; }
+  .radio-option.selected {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-dark); }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* The signature element: one large play button, center stage */
+  .play-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 0;
+  }
+
+  .play-button {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .play-button:hover { background: var(--accent-dark); }
+  .play-button.playing {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,91,165,0.35); }
+    50% { box-shadow: 0 0 0 14px rgba(59,91,165,0); }
+  }
+
+  .play-hint {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .ratings-block {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease, max-height 0.6s ease;
+  }
+  .ratings-block.visible {
+    opacity: 1;
+    max-height: 900px;
+  }
+
+  .rating-item { margin-bottom: 22px; }
+  .rating-item .trait-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .scale-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .scale-end-label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 62px;
+    flex-shrink: 0;
+  }
+  .scale-end-label.right { text-align: right; }
+  .scale-points {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .scale-point {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .scale-point.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .trial-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 10px;
+  }
+  .consent-check input { margin-top: 3px; }
+  .consent-check label { margin: 0; font-weight: 400; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Screen 1: Welcome and consent -->
+  <div class="screen active" id="screen-consent">
+    <h1>Voice Listening Task</h1>
+    <p>You'll listen to a series of short audio clips of people speaking, and rate each speaker on a few scales. This takes about 5 minutes.</p>
+    <p class="muted">Your responses are anonymous and used for research purposes only.</p>
+    <div class="consent-check">
+      <input type="checkbox" id="consent-box">
+      <label for="consent-box">I understand and agree to take part in this study.</label>
+    </div>
+    <button id="btn-consent" disabled>Continue</button>
+  </div>
+
+  <!-- Screen 2: Demographics -->
+  <div class="screen" id="screen-demo">
+    <h2>A few quick questions</h2>
+
+    <label for="d-age">What is your age?</label>
+    <input type="number" id="d-age" min="18" max="100">
+
+    <label>Is English your native language?</label>
+    <div class="radio-row" data-group="d-native">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Do you have any hearing difficulties?</label>
+    <div class="radio-row" data-group="d-hearing">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Are you wearing headphones right now?</label>
+    <div class="radio-row" data-group="d-headphones">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Gender</label>
+    <div class="radio-row" data-group="d-gender">
+      <div class="radio-option" data-value="Male">Male</div>
+      <div class="radio-option" data-value="Female">Female</div>
+    </div>
+    <div class="radio-row" data-group="d-gender" style="margin-top:8px;">
+      <div class="radio-option" data-value="Non-binary">Non-binary</div>
+      <div class="radio-option" data-value="Prefer not to say">Prefer not to say</div>
+    </div>
+
+    <button id="btn-demo" disabled>Continue</button>
+  </div>
+
+  <!-- Screen 3: Instructions -->
+  <div class="screen" id="screen-instructions">
+    <h2>How this works</h2>
+    <p>You'll hear a series of short audio clips of people speaking. After each clip, rate the speaker on the six scales shown, from 1 (Not at all) to 7 (Extremely).</p>
+    <p>Please respond based on your first impression, and answer as honestly as you can. Each clip plays once, then the rating scales will appear.</p>
+    <p class="muted">Let's start with one practice clip so you can see how it works. This one won't be scored.</p>
+    <button id="btn-start-practice">Start practice</button>
+  </div>
+
+  <!-- Screen 4: Trial (reused for practice, real trials, and attention check) -->
+  <div class="screen" id="screen-trial">
+    <div class="progress" id="progress-dots"></div>
+    <div class="trial-counter" id="trial-counter"></div>
+    <p id="attention-instruction" style="display:none; color: var(--accent-dark); font-weight: 500;"></p>
+
+    <div class="play-zone">
+      <button class="play-button" id="play-btn">&#9658;</button>
+      <div class="play-hint" id="play-hint">Tap to play</div>
+      <audio id="audio-el"></audio>
+    </div>
+
+    <div class="ratings-block" id="ratings-block">
+      <!-- rating rows get built by JS -->
+    </div>
+
+    <button id="btn-next" disabled>Next</button>
+  </div>
+
+  <!-- Screen 5: Thank you -->
+  <div class="screen" id="screen-thanks">
+    <h1>Thank you</h1>
+    <p>Your responses have been recorded. We appreciate your time.</p>
+    <p class="muted" id="submit-status">Sending your responses...</p>
+  </div>
+
+</div>
+
+<script>
+// ---- Configuration ----
+
+// Replace this with your own Google Apps Script Web App URL once it's set up.
+// See setup notes at the bottom of this file for how to create one.
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbyKaGFv3WT2pkZ8aAFu6nLc4PuMiZdMqSN2khND2-Euo5OutRBoiH_wwI-Bw2IfeiGC/exec";
+
+const TRAITS = ["Warm", "Pleasant", "Trustworthy", "Competent", "Authoritative", "Credible"];
+
+// The 8 real trials, in the fixed verbal-guise order already worked out.
+// Attention check gets inserted at a random position among these at runtime.
+const REAL_TRIALS = [
+  { file: "1_42_Lom.wav",  sentence: "The agenda covers three items, though it's pretty loud around me right now.", speaker: 1,  gender: "Female", condition: "Lombard",  category: "Assertive" },
+  { file: "4_41_Nat.wav",  sentence: "The document's already sitting in the shared folder from this morning.",      speaker: 4,  gender: "Male",   condition: "Habitual", category: "Assertive" },
+  { file: "24_52_Lom.wav", sentence: "Sorry about all the noise in the background today.",                          speaker: 24, gender: "Female", condition: "Lombard",  category: "Expressive" },
+  { file: "2_47_Lom.wav",  sentence: "Should I step away from this noise and call you back?",                       speaker: 2,  gender: "Male",   condition: "Lombard",  category: "Commissive" },
+  { file: "11_46_Nat.wav", sentence: "Should I send the notes around after this call finishes?",                    speaker: 11, gender: "Female", condition: "Habitual", category: "Commissive" },
+  { file: "16_54_Nat.wav", sentence: "I'm relieved the screen share finally worked.",                               speaker: 16, gender: "Male",   condition: "Habitual", category: "Expressive" },
+  { file: "62_59_Nat.wav", sentence: "I can't see the shared file yet, could you check the permissions?",           speaker: 62, gender: "Female", condition: "Habitual", category: "Directive" },
+  { file: "15_58_Lom.wav", sentence: "There's a lot of noise on my end right now, could you give me a second?",     speaker: 15, gender: "Male",   condition: "Lombard",  category: "Directive" }
+];
+
+// Attention check: text-based instruction, no audio needed, since its only job
+// is to confirm the participant is actually reading and following directions.
+const ATTENTION_TRIAL = {
+  file: null,
+  sentence: null,
+  isAttentionCheck: true,
+  instruction: "This one is a quick check. Please select 5 on every scale below, then click Next."
+};
+
+const PRACTICE_TRIAL = {
+  file: "practice.wav",
+  sentence: "The meeting starts at 3pm.",
+  isPractice: true
+};
+
+// ---- State ----
+
+let demographics = {};
+let sessionData = [];
+let trialQueue = [];
+let currentTrialIndex = -1;
+let currentRatings = {};
+
+// ---- Helpers ----
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffleInsertAttentionCheck(trials) {
+  const queue = trials.slice();
+  // Insert at a random position, never first or last, so it can't be predicted or skipped
+  const pos = 1 + Math.floor(Math.random() * (queue.length - 1));
+  queue.splice(pos, 0, ATTENTION_TRIAL);
+  return queue;
+}
+
+function setupRadioGroups() {
+  document.querySelectorAll('.radio-row').forEach(row => {
+    row.querySelectorAll('.radio-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const group = row.dataset.group;
+        document.querySelectorAll(`.radio-row[data-group="${group}"] .radio-option`).forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        demographics[group] = opt.dataset.value;
+        checkDemoComplete();
+      });
+    });
+  });
+}
+
+function checkDemoComplete() {
+  const age = document.getElementById('d-age').value;
+  const complete = age && demographics['d-native'] && demographics['d-hearing'] &&
+                    demographics['d-headphones'] && demographics['d-gender'];
+  document.getElementById('btn-demo').disabled = !complete;
+}
+
+function renderProgressDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  trialQueue.forEach((t, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (i < currentTrialIndex) dot.classList.add('done');
+    if (i === currentTrialIndex) dot.classList.add('current');
+    container.appendChild(dot);
+  });
+}
+
+function buildRatingRows() {
+  const block = document.getElementById('ratings-block');
+  block.innerHTML = '';
+  currentRatings = {};
+  TRAITS.forEach(trait => {
+    const item = document.createElement('div');
+    item.className = 'rating-item';
+    item.innerHTML = `
+      <div class="trait-name">${trait}</div>
+      <div class="scale-row">
+        <div class="scale-end-label">Not at all</div>
+        <div class="scale-points" data-trait="${trait}">
+          ${[1,2,3,4,5,6,7].map(n => `<div class="scale-point" data-value="${n}">${n}</div>`).join('')}
+        </div>
+        <div class="scale-end-label right">Extremely</div>
+      </div>
+    `;
+    block.appendChild(item);
+  });
+
+  block.querySelectorAll('.scale-point').forEach(pt => {
+    pt.addEventListener('click', () => {
+      const trait = pt.parentElement.dataset.trait;
+      pt.parentElement.querySelectorAll('.scale-point').forEach(p => p.classList.remove('selected'));
+      pt.classList.add('selected');
+      currentRatings[trait] = parseInt(pt.dataset.value);
+      checkAllRated();
+    });
+  });
+}
+
+function checkAllRated() {
+  const allRated = TRAITS.every(t => currentRatings[t] !== undefined);
+  document.getElementById('btn-next').disabled = !allRated;
+}
+
+function loadTrial(index, isPracticeRun) {
+  currentTrialIndex = index;
+  const trial = isPracticeRun ? PRACTICE_TRIAL : trialQueue[index];
+
+  const audio = document.getElementById('audio-el');
+  const playBtn = document.getElementById('play-btn');
+  const playHint = document.getElementById('play-hint');
+  const ratingsBlock = document.getElementById('ratings-block');
+  const attentionText = document.getElementById('attention-instruction');
+  const nextBtn = document.getElementById('btn-next');
+  const counter = document.getElementById('trial-counter');
+
+  // reset per-trial state
+  ratingsBlock.classList.remove('visible');
+  nextBtn.disabled = true;
+  playBtn.classList.remove('playing');
+  playHint.textContent = 'Tap to play';
+
+  if (!isPracticeRun) {
+    renderProgressDots();
+    counter.textContent = `${index + 1} of ${trialQueue.length}`;
+  } else {
+    document.getElementById('progress-dots').innerHTML = '';
+    counter.textContent = 'Practice';
+  }
+
+  if (trial.isAttentionCheck) {
+    attentionText.style.display = 'block';
+    attentionText.textContent = trial.instruction;
+    // No audio for the attention check, ratings appear immediately
+    document.querySelector('.play-zone').style.display = 'none';
+    buildRatingRows();
+    ratingsBlock.classList.add('visible');
+  } else {
+    attentionText.style.display = 'none';
+    document.querySelector('.play-zone').style.display = 'flex';
+    audio.src = 'audio/' + trial.file;
+    buildRatingRows();
+
+    audio.onended = () => {
+      playBtn.classList.remove('playing');
+      playHint.textContent = 'Played';
+      ratingsBlock.classList.add('visible');
+    };
+  }
+
+  playBtn.onclick = () => {
+    if (trial.isAttentionCheck) return;
+    audio.currentTime = 0;
+    audio.play();
+    playBtn.classList.add('playing');
+    playHint.textContent = 'Playing...';
+  };
+
+  showScreen('screen-trial');
+}
+
+function recordCurrentTrial(isPracticeRun) {
+  if (isPracticeRun) return; // practice data isn't saved
+  const trial = trialQueue[currentTrialIndex];
+  sessionData.push({
+    trial_number: currentTrialIndex + 1,
+    is_attention_check: !!trial.isAttentionCheck,
+    filename: trial.file,
+    sentence: trial.sentence,
+    speaker: trial.speaker,
+    gender: trial.gender,
+    condition: trial.condition,
+    category: trial.category,
+    ratings: Object.assign({}, currentRatings),
+    timestamp: new Date().toISOString()
+  });
+}
+
+function submitData() {
+  const payload = {
+    demographics: demographics,
+    trials: sessionData,
+    completed_at: new Date().toISOString()
+  };
+
+  fetch(SUBMIT_URL, {
+    method: 'POST',
+    mode: 'no-cors', // Apps Script web apps typically need no-cors from the browser
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    document.getElementById('submit-status').textContent = 'Responses saved.';
+  }).catch(() => {
+    document.getElementById('submit-status').textContent =
+      'There was an issue saving your responses automatically. Please contact the researcher.';
+  });
+}
+
+// ---- Wiring up screens ----
+
+document.getElementById('consent-box').addEventListener('change', (e) => {
+  document.getElementById('btn-consent').disabled = !e.target.checked;
+});
+
+document.getElementById('btn-consent').addEventListener('click', () => {
+  showScreen('screen-demo');
+});
+
+document.getElementById('d-age').addEventListener('input', checkDemoComplete);
+
+document.getElementById('btn-demo').addEventListener('click', () => {
+  showScreen('screen-instructions');
+});
+
+document.getElementById('btn-start-practice').addEventListener('click', () => {
+  loadTrial(0, true); // true = this is the practice run
+});
+
+let inPractice = true;
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (inPractice) {
+    inPractice = false;
+    trialQueue = shuffleInsertAttentionCheck(REAL_TRIALS);
+    loadTrial(0, false);
+    return;
+  }
+
+  recordCurrentTrial(false);
+
+  if (currentTrialIndex + 1 < trialQueue.length) {
+    loadTrial(currentTrialIndex + 1, false);
+  } else {
+    showScreen('screen-thanks');
+    submitData();
+  }
+});
+
+setupRadioGroups();
+</script>
+
+</body>
+</html>
+<!--
+SETUP NOTE, not part of the page itself:
+
+SUBMIT_URL above needs to point to a Google Apps Script Web App that appends
+incoming JSON to a Google Sheet. To set this up:
+
+1. Create a new Google Sheet.
+2. Extensions > Apps Script, paste a script that reads e.postData.contents,
+   parses it as JSON, and appends a row to the sheet.
+3. Deploy > New deployment > Web app, set "Who has access" to Anyone,
+   copy the resulting URL.
+4. Paste that URL into SUBMIT_URL at the top of the script above.
+
+This step needs your own Google account and hasn't been created yet,
+the page will not actually save data anywhere until this is done.
+-->
