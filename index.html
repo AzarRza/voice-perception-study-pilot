@@ -414,7 +414,7 @@
 <script>
 // ---- Configuration ----
 
-const SUBMIT_URL = "https://script.google.com/macros/s/AKfycby92dA9l4QUZ3_ZSr-NPqYetnlOKvS5IRK5z3Wcti6z-O49PMjsOpPOg1GxdU9LSXs/exec";
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxljCS9orRlJEH63bl7_IFDy65yCzwUtHbWlicAz39wHPcr9S8ztzsbhXSZHL9xASrA/exec";
 
 const TRAITS = ["Warm", "Pleasant", "Trustworthy", "Competent", "Authoritative", "Credible"];
 
@@ -617,6 +617,7 @@ function submitData() {
 
   const payload = {
     participant_id: PARTICIPANT_ID,
+    demo_version: "demo_1",
     demographics: demographics,
     trials: sessionData,
     completed_at: new Date().toISOString()
