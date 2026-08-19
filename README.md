@@ -4,8 +4,9 @@ Online listening task for a speech and voice perception research project. Partic
 
 ## What's in this repo
 
-`index.html` is the task itself, a single page, no build step needed.
-`audio/` holds the 9 audio clips used in the pilot, the 8 real trials plus 1 practice clip.
+`index.html` and `demo2.html` are the two pilot versions of the task, each a single page, no build step needed.
+`audio/` holds the clips used by the first version, plus a shared practice clip used by both versions.
+`audio2/` holds the clips used by the second version.
 
 ## How the site works
 
@@ -23,7 +24,7 @@ The task moves through a series of screens, in this order.
 
 **9 real trials.** 8 scored clips plus 1 attention check trial, inserted at a random spot (never first or last). There's no Back button once trials start, and that's deliberate: we want each rating to reflect a fresh first impression, not something revised after comparing it to an earlier clip.
 
-**Thank you screen.** Responses get sent automatically before this screen confirms anything. A Close window button shows up once saving succeeds. If the browser won't let a script close the tab (fairly normal for tabs that weren't opened by a script in the first place), it just asks the person to close it manually instead.
+**Thank you screen.** Responses get sent automatically before this screen confirms anything. A Close window button shows up once saving succeeds. If the browser won't let a script close the tab, it just asks the person to close it manually instead.
 
 ### How one trial actually behaves
 
@@ -31,7 +32,7 @@ Only the audio player shows up at first, just a big play button. Once the clip f
 
 ## What data gets collected
 
-For each participant: their demographic answers, plus per trial data, which clip they heard and their six ratings on it. No names, emails, or anything identifying gets collected. A random ID gets generated in the browser each session, just so one person's rows can be grouped together later.
+For each participant: their demographic answers, plus per trial data, which clip they heard and their six ratings on it. No names, emails, or anything identifying gets collected. A random ID gets generated in the browser each session, just so one person's rows can be grouped together later. Each response is also tagged with which version of the task it came from, so results from both pilot versions can be told apart in the same dataset.
 
 ## Where the responses go
 
@@ -43,4 +44,4 @@ This runs as a static site through GitHub Pages, straight from this repo's root.
 
 ## Status
 
-This is a pilot version, meant to check the task mechanics and stimulus set before scaling up to the full study.
+This is a pilot version, meant to check the task mechanics and stimulus set before scaling up to the full study. Two versions currently exist, using different speaker sets, to compare how the task performs across them.
