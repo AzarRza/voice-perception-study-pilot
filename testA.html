@@ -556,16 +556,32 @@ function checkDemoComplete() {
   document.getElementById('btn-demo').disabled = !complete;
 }
 
+function realTrialProgress(index) {
+  let count = 0;
+  for (let i = 0; i <= index; i++) {
+    if (!trialQueue[i].isAttentionCheck) count++;
+  }
+  return count;
+}
+
+function totalRealTrials() {
+  return trialQueue.filter(t => !t.isAttentionCheck).length;
+}
+
 function renderProgressDots() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
-  trialQueue.forEach((t, i) => {
+  const total = totalRealTrials();
+  const doneCount = trialQueue[currentTrialIndex].isAttentionCheck
+    ? realTrialProgress(currentTrialIndex)
+    : realTrialProgress(currentTrialIndex) - 1;
+  for (let i = 0; i < total; i++) {
     const dot = document.createElement('div');
     dot.className = 'dot';
-    if (i < currentTrialIndex) dot.classList.add('done');
-    if (i === currentTrialIndex) dot.classList.add('current');
+    if (i < doneCount) dot.classList.add('done');
+    if (!trialQueue[currentTrialIndex].isAttentionCheck && i === doneCount) dot.classList.add('current');
     container.appendChild(dot);
-  });
+  }
 }
 
 function buildRatingRows() {
@@ -623,7 +639,7 @@ function loadTrial(index, isPracticeRun) {
 
   if (!isPracticeRun) {
     renderProgressDots();
-    counter.textContent = `${index + 1} of ${trialQueue.length}`;
+    counter.textContent = `${realTrialProgress(index)} of ${totalRealTrials()}`;
     document.getElementById('practice-banner').style.display = 'none';
   } else {
     document.getElementById('progress-dots').innerHTML = '';
