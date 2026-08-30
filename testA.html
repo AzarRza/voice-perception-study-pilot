@@ -379,7 +379,7 @@
   <!-- Screen: Transition from practice to real trials -->
   <div class="screen" id="screen-transition">
     <h2>That was a practice run</h2>
-    <p>Now the real test will begin. You'll hear 65 audio clips, each followed by the same two rating scales you just tried. Please rate each one based on your first impression.</p>
+    <p>Now the real test will begin. You'll hear 64 audio clips, each followed by the same two rating scales you just tried. Please rate each one based on your first impression.</p>
     <button id="btn-start-real">Begin</button>
   </div>
 
@@ -516,9 +516,21 @@ function showScreen(id) {
 }
 
 function shuffleInsertAttentionCheck(trials) {
-  const queue = trials.slice();
-  const pos = 1 + Math.floor(Math.random() * (queue.length - 1));
-  queue.splice(pos, 0, ATTENTION_TRIAL);
+  const numChecks = 6;
+  const total = trials.length;
+  const base = Math.floor(total / numChecks);
+  const remainder = total % numChecks;
+
+  let queue = [];
+  let idx = 0;
+  for (let i = 0; i < numChecks; i++) {
+    const blockSize = base + (i < remainder ? 1 : 0);
+    const block = trials.slice(idx, idx + blockSize);
+    idx += blockSize;
+    const insertPos = Math.floor(Math.random() * (block.length + 1));
+    block.splice(insertPos, 0, ATTENTION_TRIAL);
+    queue = queue.concat(block);
+  }
   return queue;
 }
 
