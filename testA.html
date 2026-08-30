@@ -584,9 +584,11 @@ function renderProgressDots() {
   }
 }
 
-function buildRatingRows() {
+function buildRatingRows(isAttentionCheck) {
   const block = document.getElementById('ratings-block');
-  block.innerHTML = '<p class="rating-instruction">Based on the audio clip you just heard, rate how the speaker sounds to you on each scale below, from 1 (Not at all) to 7 (Extremely).</p>';
+  block.innerHTML = isAttentionCheck
+    ? ''
+    : '<p class="rating-instruction">Based on the audio clip you just heard, rate how the speaker sounds to you on each scale below, from 1 (Not at all) to 7 (Extremely).</p>';
   currentRatings = {};
   TRAITS.forEach(trait => {
     const item = document.createElement('div');
@@ -651,13 +653,13 @@ function loadTrial(index, isPracticeRun) {
     attentionText.style.display = 'block';
     attentionText.textContent = trial.instruction;
     document.querySelector('.play-zone').style.display = 'none';
-    buildRatingRows();
+    buildRatingRows(true);
     ratingsBlock.classList.add('visible');
   } else {
     attentionText.style.display = 'none';
     document.querySelector('.play-zone').style.display = 'flex';
     audio.src = (isPracticeRun ? 'audio/' : 'audio_full/') + trial.file;
-    buildRatingRows();
+    buildRatingRows(false);
 
     audio.onended = () => {
       playBtn.classList.remove('playing');
