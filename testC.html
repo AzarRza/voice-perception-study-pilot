@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening Task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F6F3;
+    --text: #1E2328;
+    --accent: #3B5BA5;
+    --accent-dark: #2E477F;
+    --muted: #8A8F98;
+    --highlight: #4A7C6F;
+    --card-bg: #FFFFFF;
+    --border: #E5E3DD;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Figtree', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 640px;
+    width: 100%;
+    padding: 40px 36px;
+    box-shadow: 0 2px 24px rgba(30,35,40,0.06);
+  }
+
+  h1 {
+    font-family: 'Figtree', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    font-family: 'Figtree', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin: 0 0 12px 0;
+  }
+
+  p {
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0 0 16px 0;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .progress {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 480px;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.done { background: var(--highlight); }
+  .dot.current { background: var(--accent); }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    margin-top: 18px;
+    font-size: 15px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+  }
+
+  .radio-row {
+    display: flex;
+    gap: 12px;
+  }
+  .radio-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    background: var(--bg);
+    transition: all 0.15s;
+  }
+  .radio-option input { display: none; }
+  .radio-option.selected {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  button {
+    font-family: 'Figtree', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-dark); }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .play-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 0;
+  }
+
+  .play-button {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .play-button:hover { background: var(--accent-dark); }
+  .play-button.playing {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,91,165,0.35); }
+    50% { box-shadow: 0 0 0 14px rgba(59,91,165,0); }
+  }
+
+  .play-hint {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .ratings-block {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease, max-height 0.6s ease;
+  }
+  .ratings-block.visible {
+    opacity: 1;
+    max-height: 900px;
+  }
+
+  .rating-instruction {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-dark);
+    text-align: center;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .rating-item {
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rating-item:last-child { border-bottom: none; }
+  .rating-item .trait-name {
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    margin: 0 auto 14px auto;
+    display: inline-block;
+    padding: 5px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--accent-dark);
+    letter-spacing: 0.01em;
+  }
+  .trait-name-wrap { text-align: center; }
+  .scale-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .scale-end-label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 62px;
+    flex-shrink: 0;
+  }
+  .scale-end-label.right { text-align: right; }
+  .scale-points {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .scale-point {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .scale-point.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .trial-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .practice-banner {
+    background: #FFF4E5;
+    color: #8A5A00;
+    border: 1px solid #F0DCB0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .back-btn {
+    background: transparent !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 10px;
+  }
+  .back-btn:hover { background: var(--bg) !important; }
+
+  .consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--bg);
+    border-radius: 10px;
+  }
+  .consent-check input { margin-top: 3px; }
+  .consent-check label { margin: 0; font-weight: 400; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Screen 1: Welcome and consent -->
+  <div class="screen active" id="screen-consent">
+    <h1>Voice Listening Task</h1>
+    <p>You'll listen to a series of short audio clips of people speaking, and rate each speaker on a few scales. This takes about 15-20 minutes.</p>
+    <p class="muted">Your responses are anonymous and used for research purposes only.</p>
+    <div class="consent-check">
+      <input type="checkbox" id="consent-box">
+      <label for="consent-box">I understand and agree to take part in this study.</label>
+    </div>
+    <button id="btn-consent" disabled>Continue</button>
+  </div>
+
+  <!-- Screen 2: Demographics -->
+  <div class="screen" id="screen-demo">
+    <h2>A few quick questions</h2>
+
+    <label for="d-age">What is your age?</label>
+    <input type="number" id="d-age" min="18" max="100">
+
+    <label>Is English your native language?</label>
+    <div class="radio-row" data-group="d-native">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Do you have any hearing difficulties?</label>
+    <div class="radio-row" data-group="d-hearing">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Are you wearing headphones right now?</label>
+    <div class="radio-row" data-group="d-headphones">
+      <div class="radio-option" data-value="Yes">Yes</div>
+      <div class="radio-option" data-value="No">No</div>
+    </div>
+
+    <label>Gender</label>
+    <div class="radio-row" data-group="d-gender">
+      <div class="radio-option" data-value="Male">Male</div>
+      <div class="radio-option" data-value="Female">Female</div>
+    </div>
+    <div class="radio-row" data-group="d-gender" style="margin-top:8px;">
+      <div class="radio-option" data-value="Non-binary">Non-binary</div>
+      <div class="radio-option" data-value="Prefer not to say">Prefer not to say</div>
+    </div>
+
+    <button id="btn-demo" disabled>Continue</button>
+    <button id="btn-demo-back" class="back-btn">Back</button>
+  </div>
+
+  <!-- Screen 3: Instructions -->
+  <div class="screen" id="screen-instructions">
+    <h2>How this works</h2>
+    <p>You'll hear a series of short audio clips of people speaking. After each clip, rate the speaker on the two scales shown, from 1 (Not at all) to 7 (Extremely).</p>
+    <p>Please respond based on your first impression, and answer as honestly as you can. Each clip plays once, then the rating scales will appear.</p>
+    <p class="muted">Let's start with one practice clip so you can see how it works. This one won't be scored.</p>
+    <button id="btn-start-practice">Start practice</button>
+    <button id="btn-instructions-back" class="back-btn">Back</button>
+  </div>
+
+  <!-- Screen: Transition from practice to real trials -->
+  <div class="screen" id="screen-transition">
+    <h2>That was a practice run</h2>
+    <p>Now the real test will begin. You'll hear 128 audio clips, each followed by the same two rating scales you just tried. Please rate each one based on your first impression.</p>
+    <button id="btn-start-real">Begin</button>
+  </div>
+
+  <!-- Screen 4: Trial (reused for practice, real trials, and attention check) -->
+  <div class="screen" id="screen-trial">
+    <div class="practice-banner" id="practice-banner" style="display:none;">This is a practice clip, it won't be scored</div>
+    <div class="progress" id="progress-dots"></div>
+    <div class="trial-counter" id="trial-counter"></div>
+    <p id="attention-instruction" style="display:none; color: var(--accent-dark); font-weight: 500;"></p>
+
+    <div class="play-zone">
+      <button class="play-button" id="play-btn">&#9658;</button>
+      <div class="play-hint" id="play-hint">Tap to play</div>
+      <audio id="audio-el"></audio>
+    </div>
+
+    <div class="ratings-block" id="ratings-block">
+    </div>
+
+    <button id="btn-next" disabled>Next</button>
+  </div>
+
+  <!-- Screen 5: Thank you -->
+  <div class="screen" id="screen-thanks">
+    <h1 id="thanks-title">Saving your responses...</h1>
+    <p id="thanks-body" class="muted">Please don't close this window yet, this only takes a moment.</p>
+    <button id="btn-close" style="display:none;">Close window</button>
+  </div>
+
+</div>
+
+<script>
+// ---- Configuration ----
+
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbzSdWwdKEm0f9WxovEKH2GPtfC7832pzP-Vhg-xSqh6v1CedbbrhXcLo4V-dhh55Bmv/exec";
+
+const TRAITS = ["Pleasant", "Authoritative"];
+
+const REAL_TRIALS = [
+  { file: "58_91_Nat.wav", sentence_id: 91, sentence: 'I\'ll circle back on that point again next week.', speaker: 58, gender: "Female", condition: "Habitual", category: "Commissive" },
+  { file: "46_39_Lom.wav", sentence_id: 39, sentence: 'Thanks for your patience with all this background noise.', speaker: 46, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "14_10_Lom.wav", sentence_id: 10, sentence: 'There\'s been a lot of shouting from the street outside all morning.', speaker: 14, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "69_87_Lom.wav", sentence_id: 87, sentence: 'Let me set up the next call before we finish today.', speaker: 69, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "22_43_Lom.wav", sentence_id: 43, sentence: 'It\'s a shame the crowd outside has been this loud today.', speaker: 22, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "14_72_Nat.wav", sentence_id: 72, sentence: 'The next team check-in is planned for this Thursday.', speaker: 14, gender: "Female", condition: "Habitual", category: "Assertive" },
+  { file: "14_41_Lom.wav", sentence_id: 41, sentence: 'I\'m glad the party next door finally quieted down.', speaker: 14, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "46_124_Lom.wav", sentence_id: 124, sentence: 'That question came up last time too, worth revisiting.', speaker: 46, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "24_88_Nat.wav", sentence_id: 88, sentence: 'I\'ll loop in the other team tomorrow.', speaker: 24, gender: "Female", condition: "Habitual", category: "Commissive" },
+  { file: "24_65_Nat.wav", sentence_id: 65, sentence: 'The document\'s already sitting in the shared folder from this morning.', speaker: 24, gender: "Female", condition: "Habitual", category: "Assertive" },
+  { file: "65_92_Nat.wav", sentence_id: 92, sentence: 'I\'m going to check with the team and confirm later.', speaker: 65, gender: "Male", condition: "Habitual", category: "Commissive" },
+  { file: "69_68_Nat.wav", sentence_id: 68, sentence: 'The next update is scheduled for early next week.', speaker: 69, gender: "Male", condition: "Habitual", category: "Assertive" },
+  { file: "25_76_Nat.wav", sentence_id: 76, sentence: 'The calendar invite already has all the dial-in details.', speaker: 25, gender: "Female", condition: "Habitual", category: "Assertive" },
+  { file: "14_40_Lom.wav", sentence_id: 40, sentence: 'It\'s annoying how much noise there\'s been outside today.', speaker: 14, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "25_114_Nat.wav", sentence_id: 114, sentence: 'That point ties into the agenda for later discussion.', speaker: 25, gender: "Female", condition: "Habitual", category: "Directive" },
+  { file: "24_103_Lom.wav", sentence_id: 103, sentence: 'Thanks for being flexible with the schedule this week.', speaker: 24, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "46_74_Lom.wav", sentence_id: 74, sentence: 'The report covers everything from the last full quarter.', speaker: 46, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "22_33_Lom.wav", sentence_id: 33, sentence: 'Sorry about all the noise in the background today.', speaker: 22, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "24_46_Lom.wav", sentence_id: 46, sentence: 'It\'s frustrating that the neighbours just won\'t stop today.', speaker: 24, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "24_94_Lom.wav", sentence_id: 94, sentence: 'I\'ll send the updated file this afternoon.', speaker: 24, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "25_111_Lom.wav", sentence_id: 111, sentence: 'It\'s nice having this all settled before the weekend.', speaker: 25, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "25_16_Lom.wav", sentence_id: 16, sentence: 'The fan in my room has been humming nonstop today.', speaker: 25, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "65_126_Nat.wav", sentence_id: 126, sentence: 'That item\'s still pending, worth a follow-up this week.', speaker: 65, gender: "Male", condition: "Habitual", category: "Directive" },
+  { file: "25_58_Lom.wav", sentence_id: 58, sentence: 'A motorbike just went past outside, worth checking if you caught that.', speaker: 25, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "24_4_Lom.wav", sentence_id: 4, sentence: 'Someone\'s running a vacuum in the next room right now.', speaker: 24, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "58_101_Nat.wav", sentence_id: 101, sentence: 'I\'m relieved that the screen share finally worked today.', speaker: 58, gender: "Female", condition: "Habitual", category: "Expressive" },
+  { file: "22_6_Lom.wav", sentence_id: 6, sentence: 'There\'s a car engine idling loudly right outside my window.', speaker: 22, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "22_120_Lom.wav", sentence_id: 120, sentence: 'That section overlaps with the last update, worth comparing.', speaker: 22, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "69_106_Nat.wav", sentence_id: 106, sentence: 'Thanks for covering that whole section so clearly today.', speaker: 69, gender: "Male", condition: "Habitual", category: "Expressive" },
+  { file: "46_104_Nat.wav", sentence_id: 104, sentence: 'I\'m glad that finally got sorted before the deadline.', speaker: 46, gender: "Male", condition: "Habitual", category: "Expressive" },
+  { file: "25_24_Lom.wav", sentence_id: 24, sentence: 'Let me move to a quieter room and rejoin in a minute.', speaker: 25, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "22_25_Lom.wav", sentence_id: 25, sentence: 'I\'m going to move away from the street since it\'s noisy.', speaker: 22, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "58_17_Lom.wav", sentence_id: 17, sentence: 'Should I step away from this noise and call you back?', speaker: 58, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "22_80_Nat.wav", sentence_id: 80, sentence: 'The overall timeline hasn\'t changed since last week\'s call.', speaker: 22, gender: "Male", condition: "Habitual", category: "Assertive" },
+  { file: "65_48_Lom.wav", sentence_id: 48, sentence: 'Sorry, there\'s a lot of racket outside my window right now.', speaker: 65, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "46_8_Lom.wav", sentence_id: 8, sentence: 'There\'s music playing somewhere nearby that I can\'t turn down.', speaker: 46, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "65_73_Nat.wav", sentence_id: 73, sentence: 'This is the same room link as last time.', speaker: 65, gender: "Male", condition: "Habitual", category: "Assertive" },
+  { file: "65_22_Lom.wav", sentence_id: 22, sentence: 'I\'m going to turn down the radio in the next room.', speaker: 65, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "22_54_Lom.wav", sentence_id: 54, sentence: 'The construction outside is loud, might help to speak up a bit.', speaker: 22, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "14_57_Lom.wav", sentence_id: 57, sentence: 'The wind\'s picking up out here, might be worth repeating that.', speaker: 14, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "69_47_Lom.wav", sentence_id: 47, sentence: 'I\'m glad we managed to hear each other despite the noise.', speaker: 69, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "69_11_Lom.wav", sentence_id: 11, sentence: 'The renovation next door has been loud all morning.', speaker: 69, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "25_35_Lom.wav", sentence_id: 35, sentence: 'Thanks for bearing with all the noise from the street today.', speaker: 25, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "65_1_Lom.wav", sentence_id: 1, sentence: 'The agenda covers three items, though it\'s pretty loud around me right now.', speaker: 65, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "65_77_Lom.wav", sentence_id: 77, sentence: 'This project moves into its next phase in June.', speaker: 65, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "14_127_Nat.wav", sentence_id: 127, sentence: 'The summary\'s in the shared doc, worth a quick read.', speaker: 14, gender: "Female", condition: "Habitual", category: "Directive" },
+  { file: "24_29_Lom.wav", sentence_id: 29, sentence: 'I\'ll step into the hallway once this crowd noise dies down.', speaker: 24, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "46_95_Nat.wav", sentence_id: 95, sentence: 'I\'m going to book the room for our next team session.', speaker: 46, gender: "Male", condition: "Habitual", category: "Commissive" },
+  { file: "46_62_Lom.wav", sentence_id: 62, sentence: 'My neighbours are being loud again, probably best to wait a second.', speaker: 46, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "69_7_Lom.wav", sentence_id: 7, sentence: 'The neighbours are having some kind of gathering next door right now.', speaker: 69, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "69_75_Lom.wav", sentence_id: 75, sentence: 'Today\'s call includes three people from the other team.', speaker: 69, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "58_36_Lom.wav", sentence_id: 36, sentence: 'It\'s frustrating how loud the neighbours have been all morning.', speaker: 58, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "69_128_Nat.wav", sentence_id: 128, sentence: 'That decision affects two other teams, worth flagging to them.', speaker: 69, gender: "Male", condition: "Habitual", category: "Directive" },
+  { file: "46_44_Lom.wav", sentence_id: 44, sentence: 'I\'m relieved that the sirens finally stopped going by.', speaker: 46, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "14_108_Nat.wav", sentence_id: 108, sentence: 'It\'s good to finally get that closed out today.', speaker: 14, gender: "Female", condition: "Habitual", category: "Expressive" },
+  { file: "14_19_Lom.wav", sentence_id: 19, sentence: 'I\'m going to step outside since it\'s so loud in here.', speaker: 14, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "24_61_Lom.wav", sentence_id: 61, sentence: 'There\'s a party next door, might help to speak a bit louder.', speaker: 24, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "65_112_Lom.wav", sentence_id: 112, sentence: 'Thanks for walking us through that so carefully today.', speaker: 65, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "46_79_Nat.wav", sentence_id: 79, sentence: 'That decision was already finalised at last week\'s meeting.', speaker: 46, gender: "Male", condition: "Habitual", category: "Assertive" },
+  { file: "46_32_Lom.wav", sentence_id: 32, sentence: 'I\'ll close the blinds and window since the street\'s so loud.', speaker: 46, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "65_123_Lom.wav", sentence_id: 123, sentence: 'The report\'s ready for a quick review before Friday.', speaker: 65, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "22_105_Lom.wav", sentence_id: 105, sentence: 'It\'s nice starting the week with this quick catch-up.', speaker: 22, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "58_97_Lom.wav", sentence_id: 97, sentence: 'Thanks so much for joining a bit earlier today.', speaker: 58, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "69_50_Lom.wav", sentence_id: 50, sentence: 'There\'s a lot of noise on my end, best to wait a second.', speaker: 69, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "46_64_Lom.wav", sentence_id: 64, sentence: 'There\'s a crowd gathering outside, worth checking if that last bit came through.', speaker: 46, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "65_3_Lom.wav", sentence_id: 3, sentence: 'There\'s a group of people chatting loudly just outside my door.', speaker: 65, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "22_9_Lom.wav", sentence_id: 9, sentence: 'Street noise has been coming through my microphone most of today.', speaker: 22, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "24_69_Lom.wav", sentence_id: 69, sentence: 'This meeting is scheduled to run for thirty minutes.', speaker: 24, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "58_56_Lom.wav", sentence_id: 56, sentence: 'Kids are playing right outside, worth flagging in case that\'s audible.', speaker: 58, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "69_21_Lom.wav", sentence_id: 21, sentence: 'Let me close the window to cut down on the street noise.', speaker: 69, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "58_42_Lom.wav", sentence_id: 42, sentence: 'Sorry about the wind noise, I can\'t seem to block it out.', speaker: 58, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "46_28_Lom.wav", sentence_id: 28, sentence: 'I\'m going to put on headphones since next door is so loud.', speaker: 46, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "22_23_Lom.wav", sentence_id: 23, sentence: 'I\'ll ask the neighbours to keep it down for a bit.', speaker: 22, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "24_100_Nat.wav", sentence_id: 100, sentence: 'Thanks for sending the notes ahead of time today.', speaker: 24, gender: "Female", condition: "Habitual", category: "Expressive" },
+  { file: "58_118_Nat.wav", sentence_id: 118, sentence: 'That change affects the timeline, worth double-checking the dates.', speaker: 58, gender: "Female", condition: "Habitual", category: "Directive" },
+  { file: "58_30_Lom.wav", sentence_id: 30, sentence: 'Let me wait for the noise to pass before continuing.', speaker: 58, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "65_60_Lom.wav", sentence_id: 60, sentence: 'People are shouting outside, might be worth saying that again.', speaker: 65, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "25_38_Lom.wav", sentence_id: 38, sentence: 'Sorry, the construction outside has been really distracting today.', speaker: 25, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "58_70_Lom.wav", sentence_id: 70, sentence: 'The slides were sent out ahead of the call.', speaker: 58, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "46_122_Nat.wav", sentence_id: 122, sentence: 'That task is still open, worth assigning before we close.', speaker: 46, gender: "Male", condition: "Habitual", category: "Directive" },
+  { file: "46_107_Lom.wav", sentence_id: 107, sentence: 'I\'m glad we could fit this in today after all.', speaker: 46, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "65_86_Lom.wav", sentence_id: 86, sentence: 'I\'m going to update the shared doc after this.', speaker: 65, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "25_110_Nat.wav", sentence_id: 110, sentence: 'I\'m relieved that the whole update went so smoothly.', speaker: 25, gender: "Female", condition: "Habitual", category: "Expressive" },
+  { file: "25_49_Lom.wav", sentence_id: 49, sentence: 'There\'s a car horn blaring outside, might be worth checking your mic.', speaker: 25, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "69_85_Nat.wav", sentence_id: 85, sentence: 'I\'ll follow up with the file once we\'re done here.', speaker: 69, gender: "Male", condition: "Habitual", category: "Commissive" },
+  { file: "69_31_Lom.wav", sentence_id: 31, sentence: 'I\'m going to close this window since the traffic\'s so loud.', speaker: 69, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "14_18_Lom.wav", sentence_id: 18, sentence: 'Let me mute myself until this background noise dies down.', speaker: 14, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "14_82_Nat.wav", sentence_id: 82, sentence: 'Let me share the recording link once it\'s ready.', speaker: 14, gender: "Female", condition: "Habitual", category: "Commissive" },
+  { file: "24_20_Lom.wav", sentence_id: 20, sentence: 'I\'ll shut the door since the kids are so loud out there.', speaker: 24, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "65_27_Lom.wav", sentence_id: 27, sentence: 'Let me put my phone on silent, it keeps buzzing.', speaker: 65, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "25_83_Nat.wav", sentence_id: 83, sentence: 'I\'m going to check the agenda and get back to you shortly.', speaker: 25, gender: "Female", condition: "Habitual", category: "Commissive" },
+  { file: "46_5_Lom.wav", sentence_id: 5, sentence: 'The construction outside has been going since this call started.', speaker: 46, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "65_34_Lom.wav", sentence_id: 34, sentence: 'Sorry about the barking, my dog won\'t settle down.', speaker: 65, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "25_89_Lom.wav", sentence_id: 89, sentence: 'I\'m going to get the numbers over to you by Friday.', speaker: 25, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "58_71_Nat.wav", sentence_id: 71, sentence: 'There are two more items left on the agenda.', speaker: 58, gender: "Female", condition: "Habitual", category: "Assertive" },
+  { file: "14_116_Lom.wav", sentence_id: 116, sentence: 'That detail\'s in the notes worth a quick review.', speaker: 14, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "25_113_Lom.wav", sentence_id: 113, sentence: 'The next slide has the numbers worth reviewing together.', speaker: 25, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "14_78_Lom.wav", sentence_id: 78, sentence: 'The budget figures are on the second slide today.', speaker: 14, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "25_67_Lom.wav", sentence_id: 67, sentence: 'The recording will be available shortly after this ends.', speaker: 25, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "65_102_Nat.wav", sentence_id: 102, sentence: 'It\'s good to have the whole team here today.', speaker: 65, gender: "Male", condition: "Habitual", category: "Expressive" },
+  { file: "22_66_Lom.wav", sentence_id: 66, sentence: 'The link for the next meeting is already in the invite.', speaker: 22, gender: "Male", condition: "Lombard", category: "Assertive" },
+  { file: "69_117_Lom.wav", sentence_id: 117, sentence: 'The deadline\'s coming up fast, worth flagging with the team.', speaker: 69, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "14_53_Lom.wav", sentence_id: 53, sentence: 'My dog\'s barking nonstop, might be best to pause a moment.', speaker: 14, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "22_98_Nat.wav", sentence_id: 98, sentence: 'I\'m glad we managed to cover everything on the list.', speaker: 22, gender: "Male", condition: "Habitual", category: "Expressive" },
+  { file: "24_13_Lom.wav", sentence_id: 13, sentence: 'Wind noise keeps coming through on my end right now.', speaker: 24, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "69_37_Lom.wav", sentence_id: 37, sentence: 'I\'m relieved that the drilling next door finally stopped.', speaker: 69, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "69_52_Lom.wav", sentence_id: 52, sentence: 'There\'s a lawn mower running outside, worth flagging for the recording.', speaker: 69, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "22_84_Lom.wav", sentence_id: 84, sentence: 'Let me forward the invite once the time\'s confirmed.', speaker: 22, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "24_55_Lom.wav", sentence_id: 55, sentence: 'There\'s drilling further down the street, worth checking if that carried over.', speaker: 24, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "14_2_Lom.wav", sentence_id: 2, sentence: 'There\'s a dog barking somewhere near me right now.', speaker: 14, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "24_45_Lom.wav", sentence_id: 45, sentence: 'Thanks for sticking with me through all this noise from the street.', speaker: 24, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "58_93_Lom.wav", sentence_id: 93, sentence: 'Let me add that item to next week\'s agenda instead.', speaker: 58, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "25_26_Lom.wav", sentence_id: 26, sentence: 'I\'ll wait until the drilling stops before I continue.', speaker: 25, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "22_119_Nat.wav", sentence_id: 119, sentence: 'The invite has the dial-in details saved for later.', speaker: 22, gender: "Male", condition: "Habitual", category: "Directive" },
+  { file: "24_125_Nat.wav", sentence_id: 125, sentence: 'The schedule shifted slightly, worth checking the updated invite.', speaker: 24, gender: "Female", condition: "Habitual", category: "Directive" },
+  { file: "14_99_Lom.wav", sentence_id: 99, sentence: 'It\'s nice to actually see everyone\'s faces for once.', speaker: 14, gender: "Female", condition: "Lombard", category: "Expressive" },
+  { file: "69_109_Lom.wav", sentence_id: 109, sentence: 'Thanks for putting those slides together so quickly today.', speaker: 69, gender: "Male", condition: "Lombard", category: "Expressive" },
+  { file: "25_15_Lom.wav", sentence_id: 15, sentence: 'An alarm keeps going off somewhere in the background.', speaker: 25, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "14_81_Lom.wav", sentence_id: 81, sentence: 'I\'ll send the notes around after this call finishes.', speaker: 14, gender: "Female", condition: "Lombard", category: "Commissive" },
+  { file: "58_121_Lom.wav", sentence_id: 121, sentence: 'The budget line needs a second look before Friday.', speaker: 58, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "58_12_Lom.wav", sentence_id: 12, sentence: 'A siren went past outside just a minute ago.', speaker: 58, gender: "Female", condition: "Lombard", category: "Assertive" },
+  { file: "22_90_Nat.wav", sentence_id: 90, sentence: 'Let me draft a summary after this meeting.', speaker: 22, gender: "Male", condition: "Habitual", category: "Commissive" },
+  { file: "22_59_Lom.wav", sentence_id: 59, sentence: 'There\'s noise from the street, might help to repeat the last part.', speaker: 22, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "24_115_Lom.wav", sentence_id: 115, sentence: 'The file\'s already shared for you to check today.', speaker: 24, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "65_63_Lom.wav", sentence_id: 63, sentence: 'A siren\'s going by outside, worth checking if that came through.', speaker: 65, gender: "Male", condition: "Lombard", category: "Directive" },
+  { file: "46_96_Lom.wav", sentence_id: 96, sentence: 'Let me review the notes before the next call.', speaker: 46, gender: "Male", condition: "Lombard", category: "Commissive" },
+  { file: "58_51_Lom.wav", sentence_id: 51, sentence: 'It\'s a bit hard to hear you, might be worth checking your speaker.', speaker: 58, gender: "Female", condition: "Lombard", category: "Directive" },
+  { file: "58_14_Lom.wav", sentence_id: 14, sentence: 'There\'s a delivery truck idling right outside my window.', speaker: 58, gender: "Female", condition: "Lombard", category: "Assertive" }
+];
+
+const ATTENTION_TRIAL = {
+  file: null,
+  sentence: null,
+  isAttentionCheck: true,
+  instruction: "This one is a quick check. Please select 5 on every scale below, then click Next."
+};
+
+const PRACTICE_TRIAL = {
+  file: "practice.wav",
+  sentence: "The meeting starts at 3pm.",
+  isPractice: true
+};
+
+// ---- State ----
+
+let demographics = {};
+let sessionData = [];
+let trialQueue = [];
+let currentTrialIndex = -1;
+let currentRatings = {};
+
+const PARTICIPANT_ID = 'P' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+
+// ---- Helpers ----
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffleInsertAttentionCheck(trials) {
+  const numChecks = 12;
+  const total = trials.length;
+  const base = Math.floor(total / numChecks);
+  const remainder = total % numChecks;
+
+  let queue = [];
+  let idx = 0;
+  for (let i = 0; i < numChecks; i++) {
+    const blockSize = base + (i < remainder ? 1 : 0);
+    const block = trials.slice(idx, idx + blockSize);
+    idx += blockSize;
+    const insertPos = Math.floor(Math.random() * (block.length + 1));
+    block.splice(insertPos, 0, ATTENTION_TRIAL);
+    queue = queue.concat(block);
+  }
+  return queue;
+}
+
+function setupRadioGroups() {
+  document.querySelectorAll('.radio-row').forEach(row => {
+    row.querySelectorAll('.radio-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const group = row.dataset.group;
+        document.querySelectorAll(`.radio-row[data-group="${group}"] .radio-option`).forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        demographics[group] = opt.dataset.value;
+        checkDemoComplete();
+      });
+    });
+  });
+}
+
+function checkDemoComplete() {
+  const age = document.getElementById('d-age').value;
+  if (age) demographics['d-age'] = age;
+  const complete = age && demographics['d-native'] && demographics['d-hearing'] &&
+                    demographics['d-headphones'] && demographics['d-gender'];
+  document.getElementById('btn-demo').disabled = !complete;
+}
+
+function realTrialProgress(index) {
+  let count = 0;
+  for (let i = 0; i <= index; i++) {
+    if (!trialQueue[i].isAttentionCheck) count++;
+  }
+  return count;
+}
+
+function totalRealTrials() {
+  return trialQueue.filter(t => !t.isAttentionCheck).length;
+}
+
+function renderProgressDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  const total = totalRealTrials();
+  const doneCount = trialQueue[currentTrialIndex].isAttentionCheck
+    ? realTrialProgress(currentTrialIndex)
+    : realTrialProgress(currentTrialIndex) - 1;
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (i < doneCount) dot.classList.add('done');
+    if (!trialQueue[currentTrialIndex].isAttentionCheck && i === doneCount) dot.classList.add('current');
+    container.appendChild(dot);
+  }
+}
+
+function buildRatingRows(isAttentionCheck) {
+  const block = document.getElementById('ratings-block');
+  block.innerHTML = isAttentionCheck
+    ? ''
+    : '<p class="rating-instruction">Based on the audio clip you just heard, rate how the speaker sounds to you on each scale below, from 1 (Not at all) to 7 (Extremely).</p>';
+  currentRatings = {};
+  TRAITS.forEach(trait => {
+    const item = document.createElement('div');
+    item.className = 'rating-item';
+    item.innerHTML = `
+      <div class="trait-name-wrap"><div class="trait-name">${trait}</div></div>
+      <div class="scale-row">
+        <div class="scale-end-label">Not at all</div>
+        <div class="scale-points" data-trait="${trait}">
+          ${[1,2,3,4,5,6,7].map(n => `<div class="scale-point" data-value="${n}">${n}</div>`).join('')}
+        </div>
+        <div class="scale-end-label right">Extremely</div>
+      </div>
+    `;
+    block.appendChild(item);
+  });
+
+  block.querySelectorAll('.scale-point').forEach(pt => {
+    pt.addEventListener('click', () => {
+      const trait = pt.parentElement.dataset.trait;
+      pt.parentElement.querySelectorAll('.scale-point').forEach(p => p.classList.remove('selected'));
+      pt.classList.add('selected');
+      currentRatings[trait] = parseInt(pt.dataset.value);
+      checkAllRated();
+    });
+  });
+}
+
+function checkAllRated() {
+  const allRated = TRAITS.every(t => currentRatings[t] !== undefined);
+  document.getElementById('btn-next').disabled = !allRated;
+}
+
+function loadTrial(index, isPracticeRun) {
+  currentTrialIndex = index;
+  const trial = isPracticeRun ? PRACTICE_TRIAL : trialQueue[index];
+
+  const audio = document.getElementById('audio-el');
+  const playBtn = document.getElementById('play-btn');
+  const playHint = document.getElementById('play-hint');
+  const ratingsBlock = document.getElementById('ratings-block');
+  const attentionText = document.getElementById('attention-instruction');
+  const nextBtn = document.getElementById('btn-next');
+  const counter = document.getElementById('trial-counter');
+
+  ratingsBlock.classList.remove('visible');
+  nextBtn.disabled = true;
+  playBtn.classList.remove('playing');
+  playHint.textContent = 'Tap to play';
+
+  if (!isPracticeRun) {
+    renderProgressDots();
+    counter.textContent = `${realTrialProgress(index)} of ${totalRealTrials()}`;
+    document.getElementById('practice-banner').style.display = 'none';
+  } else {
+    document.getElementById('progress-dots').innerHTML = '';
+    counter.textContent = 'Practice';
+    document.getElementById('practice-banner').style.display = 'block';
+  }
+
+  if (trial.isAttentionCheck) {
+    attentionText.style.display = 'block';
+    attentionText.textContent = trial.instruction;
+    document.querySelector('.play-zone').style.display = 'none';
+    buildRatingRows(true);
+    ratingsBlock.classList.add('visible');
+  } else {
+    attentionText.style.display = 'none';
+    document.querySelector('.play-zone').style.display = 'flex';
+    audio.src = (isPracticeRun ? 'audio/' : 'audio_full/') + trial.file;
+    buildRatingRows(false);
+
+    audio.onended = () => {
+      playBtn.classList.remove('playing');
+      playHint.textContent = 'Played';
+      ratingsBlock.classList.add('visible');
+    };
+  }
+
+  playBtn.onclick = () => {
+    if (trial.isAttentionCheck) return;
+    audio.currentTime = 0;
+    audio.play();
+    playBtn.classList.add('playing');
+    playHint.textContent = 'Playing...';
+  };
+
+  showScreen('screen-trial');
+}
+
+function recordCurrentTrial(isPracticeRun) {
+  if (isPracticeRun) return;
+  const trial = trialQueue[currentTrialIndex];
+  sessionData.push({
+    trial_number: currentTrialIndex + 1,
+    is_attention_check: !!trial.isAttentionCheck,
+    filename: trial.file,
+    sentence_id: trial.sentence_id,
+    sentence: trial.sentence,
+    speaker: trial.speaker,
+    gender: trial.gender,
+    condition: trial.condition,
+    category: trial.category,
+    ratings: Object.assign({}, currentRatings),
+    timestamp: new Date().toISOString()
+  });
+}
+
+function submitData() {
+  showScreen('screen-thanks');
+
+  const payload = {
+    participant_id: PARTICIPANT_ID,
+    test: "C",
+    demographics: demographics,
+    trials: sessionData,
+    completed_at: new Date().toISOString()
+  };
+
+  fetch(SUBMIT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    document.getElementById('thanks-title').textContent = 'Thank you';
+    document.getElementById('thanks-body').textContent = 'Your responses have been recorded. We appreciate your time.';
+    document.getElementById('btn-close').style.display = 'inline-block';
+  }).catch(() => {
+    document.getElementById('thanks-title').textContent = 'Something went wrong';
+    document.getElementById('thanks-body').textContent =
+      'There was an issue saving your responses. Please contact the researcher before closing this window.';
+  });
+}
+
+// ---- Wiring up screens ----
+
+document.getElementById('consent-box').addEventListener('change', (e) => {
+  document.getElementById('btn-consent').disabled = !e.target.checked;
+});
+
+document.getElementById('btn-consent').addEventListener('click', () => {
+  showScreen('screen-demo');
+});
+
+document.getElementById('d-age').addEventListener('input', checkDemoComplete);
+
+document.getElementById('btn-demo').addEventListener('click', () => {
+  showScreen('screen-instructions');
+});
+
+document.getElementById('btn-demo-back').addEventListener('click', () => {
+  showScreen('screen-consent');
+});
+
+document.getElementById('btn-instructions-back').addEventListener('click', () => {
+  showScreen('screen-demo');
+});
+
+document.getElementById('btn-start-practice').addEventListener('click', () => {
+  loadTrial(0, true);
+});
+
+let inPractice = true;
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (inPractice) {
+    inPractice = false;
+    showScreen('screen-transition');
+    return;
+  }
+
+  recordCurrentTrial(false);
+
+  if (currentTrialIndex + 1 < trialQueue.length) {
+    loadTrial(currentTrialIndex + 1, false);
+  } else {
+    submitData();
+  }
+});
+
+document.getElementById('btn-start-real').addEventListener('click', () => {
+  trialQueue = shuffleInsertAttentionCheck(REAL_TRIALS);
+  loadTrial(0, false);
+});
+
+setupRadioGroups();
+
+document.getElementById('btn-close').addEventListener('click', () => {
+  window.close();
+  setTimeout(() => {
+    document.getElementById('thanks-body').textContent = 'You can now close this tab manually.';
+    document.getElementById('btn-close').style.display = 'none';
+  }, 300);
+});
+</script>
+
+</body>
+</html>
