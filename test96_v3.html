@@ -8,6 +8,8 @@
         "What did you base your judgments on?" (required)
         "Any additional comments?" (optional)
     - Records start time, end time and total duration (for the timing pilot)
+    - Attention checks now at fixed positions (after clips 10, 19, 29, 38,
+      48, 58, 67, 77, 86) instead of random within blocks
     - Redirects to the Prolific completion URL after saving
       (replaces the "Close window" button)
   Changes from v1 to v2:
@@ -610,22 +612,19 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
-function shuffleInsertAttentionCheck(trials) {
-  const numChecks = 9;
-  const total = trials.length;
-  const base = Math.floor(total / numChecks);
-  const remainder = total % numChecks;
+// Attention checks play right after these real clips (same for everyone).
+// Evenly spaced: 9-10 clips between checks, never first, never last,
+// never back to back.
+const ATTENTION_CHECK_AFTER = [10, 19, 29, 38, 48, 58, 67, 77, 86];
 
+function shuffleInsertAttentionCheck(trials) {
   let queue = [];
-  let idx = 0;
-  for (let i = 0; i < numChecks; i++) {
-    const blockSize = base + (i < remainder ? 1 : 0);
-    const block = trials.slice(idx, idx + blockSize);
-    idx += blockSize;
-    const insertPos = Math.floor(Math.random() * (block.length + 1));
-    block.splice(insertPos, 0, ATTENTION_TRIAL);
-    queue = queue.concat(block);
-  }
+  trials.forEach((trial, i) => {
+    queue.push(trial);
+    if (ATTENTION_CHECK_AFTER.includes(i + 1)) {
+      queue.push(ATTENTION_TRIAL);
+    }
+  });
   return queue;
 }
 
